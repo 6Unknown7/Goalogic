@@ -1,0 +1,216 @@
+#include <iostream> // Библиотека для ввода/вывода
+#include <clocale> // Библиотека для русского языка
+#include <vector> // Библиотека для создания списков
+#include <string> // Библиотека для работы с текстом
+#include <ctime> // Генератор случайных чисел
+
+using namespace std;
+
+// Создаем класс (чертеж футболиста)
+class Player {
+public: // Открываем доступ, чтобы мы могли обращаться к этим данным из main
+
+    // 1. Свойства (Характеристики)
+    string name;       // Имя
+    string position;   // Позиция (FWD, MID, DEF, GK)
+    int passing;       // Точность паса (от 1 до 100)
+    int shooting;      // Сила/Точность удара (от 1 до 100)
+    int dribbling;      // Дриблинг/Контроль мяча (от 1 до 100)
+    int stamina;       // Выносливость (от 1 до 100)
+
+    // 2. Конструктор (Специальная функция, которая создает игрока)
+    // Когда мы будем "рожать" нового игрока, мы сразу передадим ему эти параметры
+    Player(string n, string pos, int pass, int shoot, int drib, int stam) {
+        name = n;
+        position = pos;
+        passing = pass;
+        shooting = shoot;
+        dribbling = drib;
+        stamina = stam;
+    }
+
+    // 3. Метод (Действие, которое умеет делать объект)
+    // Эта функция красиво выводит карточку игрока на экран
+    void printStats() {
+        cout << "[" << position << "] " << name
+            << " | Пас: " << passing
+            << " | Удар: " << shooting
+            << " | Дриблинг: " << dribbling
+            << " | Выносливость: " << stamina << "%\n";
+    }
+};
+
+class Team {
+public:
+    string teamName;           // Название команды
+    vector<Player> roster;     // Состав (вектор/список, внутри которого лежат объекты Player)
+
+    // Конструктор команды (нужно только название, состав изначально пустой)
+    Team(string tName) {
+        teamName = tName;
+    }
+
+    // Метод: добавить игрока в команду
+    void addPlayer(Player p) {
+        roster.push_back(p); // Команда push_back закидывает игрока в конец списка
+    }
+
+    // Метод: вывести весь состав на экран
+    void printTeam() {
+        cout << "=== Состав команды: " << teamName << " ===\n";
+        // Цикл пробегается по всем игрокам в списке от 0 до конца (roster.size)
+        for (int i = 0; i < roster.size(); i++) {
+            roster[i].printStats(); // Просим каждого игрока вывести свои статы
+        }
+        cout << "====================================\n";
+    }
+};
+
+
+class Match {
+public:
+    Team* homeTeam;
+    Team* awayTeam;
+    int scoreHome = 0;
+    int scoreAway = 0;
+
+    Match(Team* h, Team* a) {
+        homeTeam = h;
+        awayTeam = a;
+        srand(time(0));
+    }
+
+    bool calculateSuccess(int playerStat, int opponentStat) {
+        int total = playerStat + opponentStat;
+        if (total == 0) return false;
+        int chance = (playerStat * 100) / total;
+        int diceRoll = rand() % 100;
+        return diceRoll < chance;
+    }
+
+    void startQuickMatch() {
+        cout << "\n====================================" << endl;
+        cout << "   МАТЧ НАЧИНАЕТСЯ: " << homeTeam->teamName << " vs " << awayTeam->teamName << endl;
+        cout << "====================================\n" << endl;
+
+        // ЦИКЛ: Играем 5 игровых эпизодов
+        for (int i = 1; i <= 5; i++) {
+            cout << "--- ЭПИЗОД №" << i << " ---" << endl;
+
+            // Выбираем случайного игрока из нашей команды для этого хода
+            int randomIndex = rand() % homeTeam->roster.size();
+            Player& activePlayer = homeTeam->roster[randomIndex];
+
+            int defenderTackling = 60 + (rand() % 20); // Защитник каждый раз разный (60-80 стат)
+            int goalkeeperSave = 70 + (rand() % 15);
+
+            cout << "Мяч у игрока: " << activePlayer.name << " (" << activePlayer.position << ")" << endl;
+            cout << "1. Дриблинг | 2. Пас" << endl;
+            cout << "Ваш выбор: ";
+
+            int action;
+            cin >> action;
+
+            if (action == 1) { // Дриблинг
+                if (calculateSuccess(activePlayer.dribbling, defenderTackling)) {
+                    cout << "[!] " << activePlayer.name << " обыграл защитника!" << endl;
+                    cout << "Бьем по воротам? 1. Да | 2. Нет, пас назад" << endl;
+                    cin >> action;
+
+                    if (action == 1) {
+                        if (calculateSuccess(activePlayer.shooting, goalkeeperSave)) {
+                            cout << "[ГООООЛ!!] Счет становится солиднее!" << endl;
+                            scoreHome++;
+                        }
+                        else {
+                            cout << "[СЕЙВ] Вратарь на месте." << endl;
+                        }
+                    }
+                    else {
+                        cout << "Решили не рисковать, атака продолжается позиционно." << endl;
+                    }
+                }
+                else {
+                    cout << "[ПОТЕРЯ] Защитник отобрал мяч." << endl;
+                }
+            }
+            else { // Пас
+                if (calculateSuccess(activePlayer.passing, 50)) {
+                    cout << "[ОК] Точный пас, владение сохранено." << endl;
+                }
+                else {
+                    cout << "[!] Перехват! Соперник контратакует." << endl;
+                }
+            }
+
+            cout << "Текущий счет: " << scoreHome << ":" << scoreAway << "\n" << endl;
+            cout << "Нажмите Enter для следующего хода...";
+            cin.ignore(); // Очистка буфера после cin >> action
+            cin.get();    // Ожидание нажатия Enter
+        }
+
+        cout << "====================================" << endl;
+        cout << "ФИНАЛЬНЫЙ СВИСТОК!" << endl;
+        cout << "ИТОГОВЫЙ СЧЕТ: " << scoreHome << ":" << scoreAway << endl;
+        cout << "====================================\n" << endl;
+    }
+};
+
+// Наша первая функция. Она просто печатает меню. 
+// void означает, что функция ничего не вычисляет, а просто делает действие.
+void showMenu() {
+    cout << "====================================\n";
+    cout << "             GOALOGIC               \n";
+    cout << "====================================\n";
+    cout << "1. Быстрый матч\n";
+    cout << "2. Режим Турнира\n";
+    cout << "3. Выход\n";
+    cout << "====================================\n";
+    cout << "Ваш выбор: ";
+}
+
+int main() {
+    // Включает русский язык в консоли.
+    setlocale(LC_ALL, "Russian");
+    int choice;
+
+    while (true) {
+        showMenu();
+        // Проверка на корректность ввода числа
+        if (!(cin >> choice)) {
+            cout << "\n[Ошибка] Вводи только цифры!\n";
+            cin.clear(); // Сбрасываем ошибку
+            while (cin.get() != '\n'); // Очищаем буфер ввода
+            continue;
+        }
+
+        if (choice == 1) {
+            // 1. Создаем твою команду
+            Team myTeam("FC GoaLogic");
+            myTeam.addPlayer(Player("L. Messi", "FWD", 88, 94, 97, 100));
+            myTeam.addPlayer(Player("K. De Bruyne", "MID", 95, 82, 87, 100));
+            myTeam.addPlayer(Player("Daniil Korolev", "DEF", 99, 99, 99, 100));
+
+            // 2. Создаем противника (пока просто для теста)
+            Team opponent("AI FC");
+            opponent.addPlayer(Player("Bot Defender", "DEF", 50, 50, 50, 100));
+
+            // 3. Создаем матч и запускаем его
+            Match currentMatch(&myTeam, &opponent);
+            currentMatch.startQuickMatch();
+        }
+
+        else if (choice == 2) {
+            cout << "\n[!] Формирование турнирной сетки...\n\n";
+        }
+        else if (choice == 3) {
+            cout << "\nФинальный свисток! До встречи в Goalogic.\n";
+            break;
+        }
+        else {
+            cout << "\n[Ошибка] Мяч вне поля! Выбери 1, 2 или 3.\n\n";
+        }
+    }
+
+    return 0;
+}
