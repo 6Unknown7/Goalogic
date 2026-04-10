@@ -4,13 +4,13 @@
 #include <string>     // Библиотека для работы с текстом
 #include <algorithm>  // Библиотека для работы с min/max
 #include <ctime>      // Библиотека для генератора случайных чисел
-#include <conio.h>    // Библиотека для работы с консолью
+#include <conio.h>    // Библиотека для паузы
 
 using namespace std;
 
 // Класс (Футболист)
 class Player {
-private: // Закрываем доступ для филтьтрации статов
+protected:
 
     // 1. Свойства (Характеристики)
     string name;      // Имя
@@ -21,7 +21,7 @@ private: // Закрываем доступ для филтьтрации ста
     int defending;    // Защита
     int stamina;      // Выносливость
 
-    // Валидация для того, чтобы статы были в диапазоне [1, 99]
+    // Валидация (Статистика)
     int validateStat(int value) {
         if (value > 99) return 99;
         if (value < 1) return 1;
@@ -29,7 +29,7 @@ private: // Закрываем доступ для филтьтрации ста
     }
 
 public:    
-    // 2. Конструктор (Специальная функция, которая создает игрока)
+    // 2. Конструктор (Игрок)
     Player(string n, string pos, int shot, int pass, int drib, int def, int stam) {
         name = n;
         position = pos;
@@ -41,7 +41,7 @@ public:
     }
 
     // Функция (Общий рейтинг "OVR")
-    int getOVR() {
+    virtual int getOVR() {
         if (position == "FWD") {
             // Нападающий: Удар важнее всего
             return (shooting * 0.7) + (dribbling * 0.3);
@@ -67,15 +67,15 @@ public:
     int getDefending() { return defending; }
     int getStamina() { return stamina; }
 
-    // Сеттер (Безопасное изменение данных)
+    // Валидация (Стамина)
     void setStamina(int value) {
         if (value > 100) stamina = 100;
         else if (value < 0) stamina = 0;
         else stamina = value;
     }
 
-    // 3. Метод (Действие, которое выведет карточку игрока)
-    void printStats() {
+    // 3. Метод (Карточка игрока)
+    virtual void printStats() {
         cout << "[" << position << "] " << name << " [OVR: " << getOVR() << "] "
             << " | Удар: " << shooting
             << " | Пас: " << passing
@@ -85,11 +85,51 @@ public:
     }
 };
 
+// Класс (Вратарь)
+class Goalkeeper : public Player {
+private:
+    int reflexes;
+    int jumping;
+
+public:
+    // Конструктор (Вратарь)
+    Goalkeeper(string n, string pos, int shot, int pass, int drib, int def, int stam, int refl, int jump)
+        : Player(n, "GK", shot, pass, drib, def, stam) // Вызов родителя
+    {
+        // Валидация (Рефлексы)
+        if (refl > 99) reflexes = 99;
+        else if (refl < 1) reflexes = 1;
+        else reflexes = refl;
+
+        // Валидация (Прыжки)
+        if (jump > 99) jumping = 99;
+        else if (jump < 1) jumping = 1;
+        else jumping = jump;
+    }
+
+    // Функция (Общий рейтинг вратаря "OVR)
+    int getOVR() {
+        return (reflexes * 0.4) + (jumping * 0.5) + (getPassing() * 0.1);
+    }
+
+    // Геттер (Рефлексы и прыжки)
+    int getReflexes() { return reflexes; }
+    int getJumping() { return jumping; }
+
+    // Функция (Вывод статистик)
+    void printStats() {
+        cout << "[GK] " << getName() << " [OVR: " << getOVR() << "] "
+            << " | Рефлексы: " << reflexes
+            << " | Прыжки: " << jumping
+            << " | Выносливость: " << getStamina() << "%\n";
+    }
+};
+
 // Класс (Команда)
 class Team {
 public:
-    string teamName;           // Название команды
-    vector<Player> roster;     // Состав (вектор/список, внутри которого лежат объекты Player)
+    string teamName;
+    vector<Player*> roster; // Вектор (Состав)
 
     // Конструктор команды
     Team(string tName) {
@@ -97,8 +137,8 @@ public:
     }
 
     // Метод (Добавление игрока)
-    void addPlayer(Player p) {
-        roster.push_back(p); // Команда push_back закидывает игрока в конец списка
+    void addPlayer(Player* p) {
+        roster.push_back(p);
     }
 
     // Метод (Состав)
@@ -106,25 +146,36 @@ public:
         cout << "=== Состав команды " << teamName << ":" << "=== \n";
         int TeamTotalOVR = 0;
 
-        for (int i = 0; i < roster.size(); i++) {
-            roster[i].printStats();
-            TeamTotalOVR += roster[i].getOVR();
+        if (roster.empty()) {
+            cout << "В команде нет игроков.\n";
+            return;
+        }
+        
+        for (Player* p : roster) {
+            p->printStats();
+            TeamTotalOVR += p->getOVR();
         }
 
         if (roster.size() > 0) {
             int avgOVR = TeamTotalOVR / roster.size();
-            cout <<
-                "---------------------------" << endl;
+            cout << "---------------------------" << endl;
             cout << "Средний рейтинг команды: [" << avgOVR << "]" << endl;
             cout << "-----------------------" << endl;
         }
         cout << "====================================\n";
     }
+
+    ~Team() { // Деструктор - срабатывает при удалении команды
+        for (Player* p : roster) {
+            delete p; // Чистим память, выделенную через new
+        }
+        roster.clear();
+    }
 };
 
 // Функция (Пауза)
 void pause() {
-    cout << "\n";
+    cout << "\n ";
     _getch();
 }
 
@@ -142,60 +193,124 @@ public:
         srand(time(0));
     }
     
+    // Функция (Только полевой игрок)
+    Player& getRandomOutfieldPlayer(Team* team) {
+        vector<Player*> outfield;
+        for (auto p : team->roster) {
+
+            if (p->getPosition() != "GK") outfield.push_back(p);
+        }
+        return *outfield[rand() % outfield.size()];
+    }
+
     // Функция (Рассчет успеха)
-    bool calculateSuccess(Player& p, int statType, int opponentStat) {
+    bool calculateSuccess(Player& p, int homeStat, int oppStat) {
         // 1. Рассчитываем коэффициент усталости
-        // Если стамина 100, коэффициент = 1.0. Если стамина 50, коэффициент = 0.75.
         double fatigueMultiplier = p.getStamina() / 100.0;
 
         // 2. Реальный стат с учетом усталости
-        int effectiveStat = statType * (fatigueMultiplier + fatigueMultiplier/2);
+        int effectiveStat = homeStat * (fatigueMultiplier + fatigueMultiplier / 2 + 0.01);
+        int opponentStat = oppStat;
 
         int total = effectiveStat + opponentStat;
         if (total <= 0) return false;
 
         int chance = (effectiveStat * 100) / total;
-        int diceRoll = rand() % 100;
+        return (rand() % 100) < chance;
+    }
 
-        return diceRoll < chance;
+    Player* getGoalkeeper(Team* team) {
+
+        for (Player* p : team->roster) {
+
+            if (p->getPosition() == "GK") return p;
+        }
+        return nullptr;
+    }
+
+
+    // Функция (Безопасный ввод)
+    int getSafeAction() {
+        int action;
+
+        while (!(cin >> action) || (action != 1 && action != 2)) {
+            cout << "\n[Ошибка] Выберите 1 или 2: ";
+            cin.clear();
+
+            while (cin.get() != '\n');
+        }
+        return action;
     }
 
     void triggerCounterAttack() {
+
+        Player& homePlayer = getRandomOutfieldPlayer(homeTeam);
+        Player& oppPlayer = getRandomOutfieldPlayer(awayTeam);
+        
+        Player* hGK = getGoalkeeper(homeTeam);
+        int gkSaveStat = (hGK != nullptr) ? hGK->getOVR() : 50;
+
         cout << "\n[!!!] Соперник перехватил мяч и летит в контратаку!" << endl;
 
-        // Выбираем случайного нападающего у противника
-        int aiIndex = rand() % awayTeam->roster.size();
-        Player& aiPlayer = awayTeam->roster[aiIndex];
+        pause();
 
-        cout << aiPlayer.getName() << " приближается к воротам с мячом!" << endl;
+        cout << oppPlayer.getName() << " приближается к воротам с мячом!" << endl;
 
         pause();
 
-        int myDefIndex = rand() % homeTeam->roster.size();
-        Player& myDefender = homeTeam->roster[myDefIndex];
-        int goalkeeperSave = 50 + (rand() % 15);
+        cout << homePlayer.getName() << " пытается прервать атаку..." << endl;
+        cout << "Что делать? 1. Защищаться | 2. Ждать удара" << endl;
+        cout << "Ваш выбор: ";
 
-        cout << myDefender.getName() << " пытается прервать атаку..." << endl;
+        int action = getSafeAction;
 
-        pause();
+        if (action == 1) {
 
-        if (calculateSuccess(aiPlayer, aiPlayer.getDribbling(), myDefender.getDefending())) {
-            cout << "[ОПАСНО!] " << aiPlayer.getName() << " филигранно обыграл и бьет по воротам..." << endl;
-
-            pause();
-
-            if (calculateSuccess(aiPlayer, aiPlayer.getShooting(), goalkeeperSave)) {
-                cout << "[ГОЛ] " << aiPlayer.getName() << " мощно пробил и не оставил шансов вратарю!" << endl;
-                scoreAway++;
+            if (calculateSuccess(homePlayer, homePlayer.getDefending(), oppPlayer.getDribbling())) {
+                cout << "\n[УСПЕХ!] " << homePlayer.getName() << " отобрал мяч, владение восстановлено!" << endl;
+                homePlayer.setStamina(homePlayer.getStamina() - 10);
+                oppPlayer.setStamina(oppPlayer.getStamina() - 10);
             }
+
             else {
-                cout << "[ФУХХХХ!] Вратарь спасает команду!" << endl;
+                cout << "\n[ОПАСНО!] " << oppPlayer.getName() << " филигранно обыграл и бьет по воротам..." << endl;
+                homePlayer.setStamina(homePlayer.getStamina() - 10);
+                oppPlayer.setStamina(oppPlayer.getStamina() - 15);
+
+                if (calculateSuccess(oppPlayer, oppPlayer.getShooting(), gkSaveStat)) {
+                    cout << "\n[ГОЛ!] " << oppPlayer.getName() << " мощно пробил и не оставил шансов вратарю!" << endl;
+                    scoreAway++;
+                    oppPlayer.setStamina(oppPlayer.getStamina() - 10);
+                }
+
+                else {
+                    cout << "\n[ФУХХХХ!] Вратарь спасает команду!" << endl;
+                    oppPlayer.setStamina(oppPlayer.getStamina() - 10);
+                }
+
+                if (hGK) hGK->setStamina(hGK->getStamina() - 10);
+                cout << "\nОстаток сил вратаря:  " << hGK->getStamina() << "%" << endl;
+
+                pause();
             }
         }
-        else {
-            cout << "[ЕСТЬ!] " << myDefender.getName() << " героически отобрал мяч!" << endl;
-        }
 
+        else if (action == 2) {
+
+            if (calculateSuccess(oppPlayer, oppPlayer.getShooting(), gkSaveStat)) {
+                cout << "\n[ГОЛ!] " << oppPlayer.getName() << " мощно пробил и не оставил шансов вратарю!" << endl;
+                scoreAway++;
+                oppPlayer.setStamina(oppPlayer.getStamina() - 10);
+            }
+
+            else if (int(rand() % 100) > 80) {
+                cout << "\n[УСПЕХ!] Повезло, мяч попал прямо в защитника!" << endl;
+                oppPlayer.setStamina(oppPlayer.getStamina() - 10);
+            }
+
+            if (hGK != nullptr) hGK->setStamina(hGK->getStamina() - 10);
+            cout << "\nОстаток сил вратаря: " << hGK->getStamina() << "%" << endl;
+        }
     }
 
     void startQuickMatch() {
@@ -205,67 +320,80 @@ public:
 
         // ЦИКЛ: Играем 5 игровых эпизодов
         for (int i = 1; i <= 5; i++) {
+
+            Player& hPlayer = getRandomOutfieldPlayer(homeTeam);
+            Player& oPlayer = getRandomOutfieldPlayer(awayTeam);
+            
+            Player* oppGK = getGoalkeeper(awayTeam);
+            int gkSaveStats = (oppGK != nullptr) ? oppGK->getOVR() : 50;
+
             cout << "--- ЭПИЗОД №" << i << " ---" << endl;
-
-            int randomIndex = rand() % homeTeam->roster.size();
-            Player& activePlayer = homeTeam->roster[randomIndex];
-
-            int defenderTackling = 60 + (rand() % 20);
-            int goalkeeperSave = 50 + (rand() % 15);
-
-            cout << "Мяч у игрока: " << activePlayer.getName() << " (" << activePlayer.getPosition() << ")" << endl;
-            cout << "1. Дриблинг | 2. Пас" << endl;
+            cout << "Мяч у игрока: " << hPlayer.getName() << " (" << hPlayer.getPosition() << ")" << endl;
+            cout << "Против него защищается:  " << oPlayer.getName() << " (Защита: " << oPlayer.getDefending() << ")" << endl;
+            cout << "Что делаем? 1. Дриблинг | 2. Пас" << endl;
             cout << "Ваш выбор: ";
 
-            int action;
-            cin >> action;
+            int action = getSafeAction;
 
             if (action == 1) {
-                if (calculateSuccess(activePlayer, activePlayer.getDribbling(), defenderTackling)) {
-                    cout << "[!] " << activePlayer.getName() << " обыграл защитника!" << endl;
+                if (calculateSuccess(hPlayer, hPlayer.getDribbling(), oPlayer.getDefending())) {
+                    cout << "\n[!] " << hPlayer.getName() << " обыграл защитника!" << endl;
                     cout << "Бьем по воротам? 1. Да | 2. Нет, пас назад" << endl;
-                    activePlayer.setStamina(activePlayer.getStamina() - 25); //Тратим стамину
-                    cin >> action;
+                    cout << "Ваш выбор: ";
+                    hPlayer.setStamina(hPlayer.getStamina() - 15);
+                    oPlayer.setStamina(oPlayer.getStamina() - 10);
 
                     if (action == 1) {
-                        if (calculateSuccess(activePlayer, activePlayer.getShooting(), goalkeeperSave)) {
-                            cout << "[ГООООЛ!] Счет становится солиднее!" << endl;
+
+                        if (calculateSuccess(hPlayer, hPlayer.getShooting(), gkSaveStats)) {
+                            cout << "\n[ГООООЛ!] Счет становится солиднее!" << endl;
                             scoreHome++;
-                            activePlayer.setStamina(activePlayer.getStamina() -10);
+                            hPlayer.setStamina(hPlayer.getStamina() - 10);
+
                         }
+
                         else {
-                            cout << "[СЕЙВ] Вратарь на месте." << endl;
-                            activePlayer.setStamina(activePlayer.getStamina() - 10);
+                            cout << "\n[СЕЙВ!] Вратарь на месте." << endl;
+                            hPlayer.setStamina(hPlayer.getStamina() - 10);
                         }
+
+                        if (oppGK != nullptr) oppGK->setStamina(oppGK->getStamina() - 10);
+                        cout << "\nОстаток сил вратаря: " << oppGK->getStamina() << "%" << endl;
                     }
+
                     else {
-                        cout << "Решили не рисковать, атака продолжается позиционно." << endl;
-                        activePlayer.setStamina(activePlayer.getStamina() - 5);
+                        cout << "\nРешили не рисковать, атака продолжается позиционно." << endl;
+                        hPlayer.setStamina(hPlayer.getStamina() - 5);
                     }
                 }
+
                 else {
-                    cout << "[ПОТЕРЯ] Защитник отобрал мяч." << endl;
-                    activePlayer.setStamina(activePlayer.getStamina() - 10);
-                    triggerCounterAttack();
-                }
-            }
-            else {
-                if (calculateSuccess(activePlayer, activePlayer.getPassing(), 50)) {
-                    cout << "[ОК] Точный пас, владение сохранено." << endl;
-                    activePlayer.setStamina(activePlayer.getStamina() - 5);
-                }
-                else {
-                    cout << "[!] Перехват! Соперник контратакует." << endl;
-                    activePlayer.setStamina(activePlayer.getStamina() - 5);
+                    cout << "\n[ПОТЕРЯ!] Защитник отобрал мяч." << endl;
+                    hPlayer.setStamina(hPlayer.getStamina() - 15);
+                    oPlayer.setStamina(oPlayer.getStamina() - 10);
                     triggerCounterAttack();
                 }
             }
 
-            cout << "\nОстаток сил " << activePlayer.getName() << ": " << activePlayer.getStamina() << "% \n" << endl;
-            cout << "Текущий счет: " << scoreHome << ":" << scoreAway << "\n" << endl;
-            cout << "Нажмите Enter для следующего хода...\n";
-            cin.ignore(); // Очистка буфера после cin >> action
-            cin.get();    // Ожидание нажатия Enter
+            else {
+                if (calculateSuccess(hPlayer, hPlayer.getPassing(), 50)) {
+                    cout << "\n[ОК] Точный пас, владение сохранено." << endl;
+                    hPlayer.setStamina(hPlayer.getStamina() - 5);
+                }
+
+                else {
+                    cout << "\n[!] Перехват! Соперник контратакует." << endl;
+                    hPlayer.setStamina(hPlayer.getStamina() - 5);
+                    oPlayer.setStamina(oPlayer.getStamina() - 5);
+                    triggerCounterAttack();
+                }
+            }
+
+            cout << "\nОстаток сил " << hPlayer.getName() << ": " << hPlayer.getStamina() << "%" << endl;
+            cout << "\nОстаток сил " << oPlayer.getName() << ": " << oPlayer.getStamina() << "%" << endl;
+            cout << "\nТекущий счет: " << scoreHome << ":" << scoreAway << endl;
+            cout << "\nНажмите любую клавишу для следующего хода...";
+            pause()
         }
 
         cout << "====================================" << endl;
@@ -293,11 +421,12 @@ int main() {
 
     // 1. Создаем твою команду
     Team myTeam("FC GoaLogic");
-    myTeam.addPlayer(Player("L. Messi", "FWD", 88, 94, 97, 36, 100));
-    myTeam.addPlayer(Player("C. Ronaldo", "FWD", 93, 98, 94, 41, 100));
-    myTeam.addPlayer(Player("K. De Bruyne", "MID", 95, 82, 87, 57, 100));
-    myTeam.addPlayer(Player("Daniil Korolev", "DEF", 99, 99, 99, 99, 100));
-    myTeam.addPlayer(Player("Artyom Sayatevich", "MID", 69, 68, 67, 66, 1));
+    myTeam.addPlayer(new Player("L. Messi", "FWD", 88, 94, 97, 36, 100));
+    myTeam.addPlayer(new Player("C. Ronaldo", "FWD", 93, 98, 94, 41, 100));
+    myTeam.addPlayer(new Player("K. De Bruyne", "MID", 95, 82, 87, 57, 100));
+    myTeam.addPlayer(new Player("D. Korolev", "DEF", 99, 99, 99, 99, 100));
+    myTeam.addPlayer(new Player("A. Sayatevich", "MID", 69, 68, 67, 66, 1));
+    myTeam.addPlayer(new Goalkeeper("M. Neuer", "GK", 30, 81, 46, 53, 100, 97, 93));
 
     int choice;
 
@@ -312,15 +441,16 @@ int main() {
         }
 
         if (choice == 1) {
-            // 2. Создаем противника (пока просто для теста)
+            // Создание команды противника
             Team opponent("AFC Goalogic");
-            opponent.addPlayer(Player("H. Kane", "FWD", 91, 79, 84, 32, 100));
-            opponent.addPlayer(Player("L. Martinez", "FWD", 90, 76, 87, 35, 100));
-            opponent.addPlayer(Player("R. Cherki", "MID", 82, 93, 95, 52, 100));
-            opponent.addPlayer(Player("W. Saliba", "DEF", 68, 84, 29, 95, 100));
-            opponent.addPlayer(Player("D. Huijsen", "DEF", 63, 81, 37, 89, 100));
+            opponent.addPlayer(new Player("H. Kane", "FWD", 91, 79, 84, 32, 100));
+            opponent.addPlayer(new Player("L. Martinez", "FWD", 90, 76, 87, 35, 100));
+            opponent.addPlayer(new Player("R. Cherki", "MID", 82, 93, 95, 52, 100));
+            opponent.addPlayer(new Player("W. Saliba", "DEF", 68, 84, 29, 95, 100));
+            opponent.addPlayer(new Player("D. Huijsen", "DEF", 63, 81, 37, 89, 100));
+            opponent.addPlayer(new Goalkeeper("E. Martinez", "GK", 23, 71, 35, 40, 100, 83, 82));
 
-            // 3. Создаем матч и запускаем его
+            // Создание матча
             Match currentMatch(&myTeam, &opponent);
             currentMatch.startQuickMatch();
         }
