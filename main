@@ -5,8 +5,8 @@
 #include <algorithm>  // Библиотека для работы с min/max
 #include <ctime>      // Библиотека для генератора случайных чисел
 #include <conio.h>    // Библиотека для работы с консолями
-#include <fstream>  // Для работы с файлами
-#include <sstream>  // Для удобного разделения строки на части
+#include <fstream>  // Библиотека для работы с файлами
+#include <sstream>  // Библиотека для удобного разделения строки на части
 
 // Константы для цветов
 #define RESET   "\033[0m" // Сброс цвета
@@ -15,8 +15,6 @@
 #define YELLOW  "\033[33m" // Желтый
 #define ORANGE  "\033[38;5;208m" // Оранжевый
 #define BOLD    "\033[1m" // Жирный
-#define SEMIBOLD "\033[1;3m" // Полужирный
-#define CURSIVE "\033[3m" // Курсив
 
 using namespace std;
 
@@ -31,6 +29,7 @@ protected:
     int passing;      // Сила/Точность паса
     int dribbling;    // Дриблинг
     int defending;    // Защита
+	int physics;     // Физика (для будущих версий)
     int stamina;      // Выносливость
 
     // Валидация (Статистика)
@@ -44,13 +43,14 @@ protected:
 
 public:
     // 2. Конструктор (Игрок)
-    Player(string n, string pos, int shot, int pass, int drib, int def, int stam) {
+    Player(string n, string pos, int shot, int pass, int drib, int def, int phys, int stam) {
         name = n;
         position = pos;
         shooting = validateStat(shot);
         passing = validateStat(pass);
         dribbling = validateStat(drib);
         defending = validateStat(def);
+		physics = validateStat(phys);
         setStamina(stam);
     }
 
@@ -78,6 +78,7 @@ public:
     int getPassing() { return passing; }
     int getDribbling() { return dribbling; }
     int getDefending() { return defending; }
+	int getPhysics() { return physics; }
     int getStamina() { return stamina; }
     bool getIsInjured() { return isInjured; }
 
@@ -108,6 +109,7 @@ public:
             << " | Пас: " << passing
             << " | Дриблинг: " << dribbling
             << " | Защита: " << defending
+			<< " | Физика: " << physics
             << " | Выносливость: " << getColoredStamina() << "\n";
     }
 };
@@ -120,8 +122,8 @@ private:
 
 public:
     // Конструктор (Вратарь)
-    Goalkeeper(string n, string pos, int shot, int pass, int drib, int def, int stam, int refl, int jump)
-        : Player(n, "GK", shot, pass, drib, def, stam) // Вызов родителя
+    Goalkeeper(string n, string pos, int shot, int pass, int drib, int def, int phys, int stam, int refl, int jump)
+        : Player(n, "GK", shot, pass, drib, def, phys, stam) // Вызов родителя
     {
         // Валидация (Рефлексы)
         if (refl > 99) reflexes = 99;
@@ -149,6 +151,7 @@ public:
             << " | Рефлексы: " << reflexes
             << " | Пас: " << passing
             << " | Прыжки: " << jumping
+			<< " | Физика: " << physics
             << " | Выносливость: " << getColoredStamina() << "\n";
     }
 };
@@ -191,6 +194,62 @@ public:
             cout << "-----------------------" << endl;
         }
         cout << "====================================\n";
+    }
+
+    // Функция (Импорт игроков из файла)
+    void loadPlayersFromFile(string filename) {
+        ifstream file(filename); // Открываем файл для чтения
+        string line;
+
+        if (!file.is_open()) {
+            cout << RED << BOLD << "[ОШИБКА] Не удалось открыть файл: " << filename << RESET << endl;
+        }
+
+        while (getline(file, line)) { // Читаем файл построчно
+            stringstream ss(line);
+            string name, pos, part;
+            vector<string> data;
+
+            // Разрезаем строку по запятым и пихаем в вектор data
+            while (getline(ss, part, ',')) {
+                data.push_back(part);
+            }
+
+            if (data.size() == 8) {
+				addPlayer(new Player(data[0], data[1], stoi(data[2]), stoi(data[3]), stoi(data[4]), stoi(data[5]), stoi(data[6]), 100)); // Выносливость по умолчанию 100 при загрузке из файла нужно сделать так, чтобы не нужно было ставить пробел в текстовом файле, а просто не указывать это поле, а в коде при загрузке проверять, если данных 8, то ставить 100, если 9, то брать из файла
+            }
+
+            else if (data.size() == 10) {
+				addPlayer(new Goalkeeper(data[0], "GK", stoi(data[2]), stoi(data[3]), stoi(data[4]), stoi(data[5]), stoi(data[6]), 100, stoi(data[8]), stoi(data[9]))); // Здесь тоже самое с выносливостью, нужно сделать так, чтобы не нужно было ставить пробел в текстовом файле, а просто не указывать это поле, а в коде при загрузке проверять, если данных 10, то ставить 100, если 11, то брать из файла
+            }
+        }
+
+        file.close();
+        cout << GREEN << "[Успех] Загружено игроков из файла: " << roster.size() << RESET << endl;
+    }
+
+    // Функция создать игрока вручную
+    void createManualPlayer() {
+        string n, pos;
+        int shot, pass, drib, def, phys, stam;
+
+        cout << "\n--- СОЗДАНИЕ НОВОГО ИГРОКА ---" << endl;
+        cout << "Введите имя: ";
+        cin.ignore(); // Очистка буфера после выбора в меню
+        getline(cin, n);
+
+        cout << "Введите позицию (FWD, MID, DEF): "; cin >> pos;
+        cout << "Удар (1-99): "; cin >> shot;
+        cout << "Пас (1-99): "; cin >> pass;
+        cout << "Дриблинг (1-99): "; cin >> drib;
+        cout << "Защита (1-99): "; cin >> def;
+		cout << "Физика (1-99): "; cin >> phys;
+        stam = 100;
+
+        // Создаем и сразу добавляем в список команды
+        addPlayer(new Player(n, pos, shot, pass, drib, def, phys, stam));
+
+        cout << GREEN << "\n[Система] Игрок " << n << " успешно создан и зачислен в состав!" << RESET << endl;
     }
 
     ~Team() { // Деструктор - срабатывает при удалении команды
@@ -270,7 +329,12 @@ public:
             "вывих голеностопа",
             "перелом левой лодыжки",
             "разрыв задней поверхности бедра",
-            "сотрясение мозга"
+            "сотрясение мозга",
+            "разрыв передней крестообразной связки",
+            "разрыв задней крестообразной связки",
+            "перелом ключицы",
+            "разрыв мениска",
+            "перелом большого пальца правой ноги"
         };
 
         // Пометка игрока
@@ -278,22 +342,29 @@ public:
         p.setStamina(0);
 
         string injury = injuryTypes[rand() % injuryTypes.size()];
-        cout << "\n" << RED << BOLD << "\n[ТРАВМА!] " << RESET << p.getName() << " получил травму ( " << CURSIVE << SEMIBOLD << injury << RESET << " )  и не может продолжать матч!" << endl;
+        cout << "\n" << RED << BOLD << "\n[ТРАВМА!] " << RESET << p.getName() << " получил травму ( " << BOLD << injury << RESET << " )  и не может продолжать матч!" << endl;
     }
     
     // Функция (Травма)
     void handleStaminaAndInjury(Player& p, int drop) {
         if (p.getIsInjured()) return;
-
+        
         p.setStamina(p.getStamina() - drop);
 
         int chance = 0;
+
         if (p.getStamina() <= 20) chance = 10;
         else if (p.getStamina() <= 15) chance = 15;
         else if (p.getStamina() <= 10) chance = 30;
         else if (p.getStamina() <= 5) chance = 50;
         else if (p.getStamina() == 0) chance = 90;
         else chance = 5;
+
+        int physModifier = (50 - p.getPhysics()) / 3;
+
+        chance += physModifier;
+
+        if (chance < 0) chance = 0;
 
         if (chance > 0 && (rand() % 100) < chance) {
             handleInjury(p);
@@ -302,6 +373,7 @@ public:
         return;
     }
     
+    // Функция (Контратака)
     void triggerCounterAttack() {
 
         Player& homePlayer = getRandomOutfieldPlayer(homeTeam);
@@ -378,12 +450,13 @@ public:
         }
     }
 
+    // Функция (Матч)
     void startQuickMatch() {
         cout << "\n====================================" << endl;
         cout << "   МАТЧ НАЧИНАЕТСЯ: " << homeTeam->teamName << " vs " << awayTeam->teamName << endl;
         cout << "====================================\n" << endl;
 
-        // ЦИКЛ: Играем 5 игровых эпизодов
+        // Цикл (Игра)
         for (int i = 1; i <= 5; i++) {
 
             Player& hPlayer = getRandomOutfieldPlayer(homeTeam);
@@ -489,7 +562,8 @@ void showMenu() {
     cout << "1. Быстрый матч\n";
     cout << "2. Режим Турнира\n";
     cout << "3. Команда\n";
-    cout << "4. Выход\n";
+    cout << "4. Создать игрока\n";
+    cout << "5. Выход\n";
     cout << "====================================\n";
     cout << "Ваш выбор: ";
 }
@@ -497,14 +571,8 @@ void showMenu() {
 int main() {
     setlocale(LC_ALL, "Russian");
 
-    Team myTeam("FC GoaLogic"); // 1. Создаем твою команду
-    myTeam.addPlayer(new Player("L. Messi", "FWD", 88, 94, 97, 36, 100));
-    myTeam.addPlayer(new Player("C. Ronaldo", "FWD", 93, 98, 94, 41, 100));
-    myTeam.addPlayer(new Player("K. De Bruyne", "MID", 95, 82, 87, 57, 100));
-    myTeam.addPlayer(new Player("D. Korolev", "DEF", 99, 99, 99, 99, 100));
-    myTeam.addPlayer(new Player("V. Van Djik", "DEF", 56, 84, 44, 97, 100));
-    myTeam.addPlayer(new Player("A. Sayatevich", "MID", 69, 68, 67, 66, 1));
-    myTeam.addPlayer(new Goalkeeper("M. Neuer", "GK", 30, 81, 46, 53, 100, 97, 93));
+    Team myTeam("FC GoaLogic"); // Создаем твою команду
+    myTeam.loadPlayersFromFile("players.txt");
 
     int choice;
 
@@ -520,13 +588,13 @@ int main() {
 
         if (choice == 1) { // Создаем команду соперника
             Team opponent("AFC Goalogic");
-            opponent.addPlayer(new Player("H. Kane", "FWD", 91, 79, 84, 32, 100));
-            opponent.addPlayer(new Player("L. Martinez", "FWD", 90, 76, 87, 35, 100));
-            opponent.addPlayer(new Player("R. Cherki", "MID", 82, 93, 95, 52, 100));
-            opponent.addPlayer(new Player("W. Saliba", "DEF", 68, 84, 29, 95, 100));
-            opponent.addPlayer(new Player("D. Huijsen", "DEF", 63, 81, 37, 89, 100));
-            opponent.addPlayer(new Player("J. Frimpong", "DEF", 69, 80, 64, 83, 100));
-            opponent.addPlayer(new Goalkeeper("E. Martinez", "GK", 23, 71, 35, 40, 100, 83, 82));
+            opponent.addPlayer(new Player("H. Kane", "FWD", 91, 79, 84, 32, 90, 100));
+            opponent.addPlayer(new Player("L. Martinez", "FWD", 90, 76, 87, 35, 87, 100));
+            opponent.addPlayer(new Player("R. Cherki", "MID", 82, 93, 95, 52, 83,100));
+            opponent.addPlayer(new Player("W. Saliba", "DEF", 68, 84, 29, 95, 92, 100));
+            opponent.addPlayer(new Player("D. Huijsen", "DEF", 63, 81, 37, 89, 79, 100));
+            opponent.addPlayer(new Player("J. Frimpong", "DEF", 69, 80, 64, 83, 74, 100));
+            opponent.addPlayer(new Goalkeeper("E. Martinez", "GK", 23, 71, 35, 40, 77, 100, 83, 82));
 
             Match currentMatch(&myTeam, &opponent);
             currentMatch.startQuickMatch();
@@ -536,6 +604,7 @@ int main() {
 
         else if (choice == 2) {
             cout << "\n[!] Формирование турнирной сетки...\n\n";
+            cout << "\nДанный режим на этапе разработки...\n\n";
         }
 
         else if (choice == 3) {
@@ -546,6 +615,10 @@ int main() {
         }
 
         else if (choice == 4) {
+            myTeam.createManualPlayer();
+        }
+
+        else if (choice == 5) {
             cout << "\nФинальный свисток! До встречи в Goalogic.\n";
             return 0;
         }
