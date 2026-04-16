@@ -1,0 +1,16 @@
+K. Mbappe,FWD,88,72,95,27,96
+L. Messi,FWD,90,88,97,36,86
+C. Ronaldo,FWD,93,86,94,41,92
+F. Valverde,MID,97,85,74,77,91 
+R. Cherki,MID,82,93,87,52,83
+M. Olise,MID,86,84,90,43,85
+A. Sayatevich,DEF,67,67,67,67,1,1
+D. Korolev,DEF,99,99,99,99,99 
+V. Van Djik,DEF,61,82,54,95,91
+N. Mendes,DEF,80,83,81,93,92 
+M. Safonov,GK,37,84,34,45,84,95,92
+M. Neuer,GK,30,81,46,53,71,94,93
+H. Ekitike,FWD,84,76,85,56,87 
+R. Ngumoha,FWD,76,71,79,32,79
+D. Szoboszlai,MID,77,85,76,81,87 
+F. Mendy,DEF,68,76,66,83,63

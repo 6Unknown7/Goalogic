@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Goalogic.vcxproj" Id="f034c01e-30cf-4b55-8763-ae29a8b7d257" />
+</Solution>
