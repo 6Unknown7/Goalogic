@@ -4,7 +4,7 @@
 ## Global Changes:
 - **Structural Revolution** — The entire game engine has been completely rewritten using a modular multi-file architecture. All logic for Players, Teams, and Match mechanics is now separated into dedicated modules.
 
-- **Expanded Rosters** — Team capacity has been increased to 16 players per side. All players are now actively involved in the match, creating a massive 16-vs-16 gameplay experience.
+- **Expanded Rosters** — Team capacity has been increased to 16 players per side. All players are now actively involved in the match, creating a massive temporary 16-vs-16 gameplay experience.
 
 ## Minor Changes:
 - **Enhanced File Parser** — The loading system for players.txt is now much more robust. It automatically cleans up unnecessary spaces and empty lines.
