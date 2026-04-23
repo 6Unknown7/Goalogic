@@ -39,7 +39,7 @@
     <ProjectGuid>{f034c01e-30cf-4b55-8763-ae29a8b7d257}</ProjectGuid>
     <RootNamespace>mian</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>main</ProjectName>
+    <ProjectName>Goalogic</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

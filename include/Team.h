@@ -14,7 +14,7 @@ public:
 
     Team(string tName); // Конструктор
     ~Team(); // Деструктор
-
+	Player* findStarterByPosition(PlayerPosition pos); // Метод (Найти стартового игрока по позиции)
     void addPlayer(Player* p); // Функция (Добавление игрока)
     void printTeam(); // Функция (Вывод команды)
     void loadPlayersFromFile(string filename); // Функция (Подгрузка игроков из внешнего файла)

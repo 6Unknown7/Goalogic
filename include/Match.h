@@ -1,9 +1,10 @@
 ﻿#pragma once
 
 #include "Team.h"
+#include <string>
 
 // Функция (Загрузка)
-void loadingEffect();
+void loadingEffect(string message);
 
 // Функция (Пауза)
 void pause();
@@ -15,15 +16,18 @@ public:
     Team* awayTeam;
     int scoreHome = 0;
     int scoreAway = 0;
+    int homeSubsLeft = 5;
 
     Match(Team* h, Team* a);
 
     Player& getRandomOutfieldPlayer(Team* team); // Функция (Только полевой игрок)
+    void showSubstitutionMenu(Team* team);
     bool calculateSuccess(Player& p, int homeStat, int oppStat); // Функция (Рассчет успеха)
     Player* getGoalkeeper(Team* team); // Функция (Определение вратаря)
     int getSafeAction(); // Функция (Безопасный ввод)
     void handleInjury(Player& p); // Функция (Генератор травм)
     void handleStaminaAndInjury(Player& p, int drop); // Функция (Травма)
+    int getMenuChoice(); // Функция (Выбор действия)
     void triggerCounterAttack(); // Функция (Контратака)
     void startQuickMatch(); // Функция (Быстрый матч)
 };

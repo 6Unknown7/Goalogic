@@ -1,7 +1,6 @@
 # Goalogic Changelog
----
-# Release v0.0.9 — The "Soul & Mind" Update
 
+# Release v0.0.9 — The "Soul & Mind" Update
 ## Global Changes:
 - **Standardized Squad Logic** — Retired the temporary 16-vs-16 "massive roster" format. The match engine has been recalibrated to a fixed, stabilized lineup system, prioritizing tactical precision over chaotic numbers.
 
@@ -23,7 +22,7 @@
 ## Global Changes:
 - **Structural Revolution** — The entire game engine has been completely rewritten using a modular multi-file architecture. All logic for Players, Teams, and Match mechanics is now separated into dedicated modules.
 
-- **Expanded Rosters** — Team capacity has been increased to 16 players per side. All players are now actively involved in the match, creating a massive temporary 16-vs-16 gameplay experience.
+- **Expanded Rosters** — Team capacity has been increased to 16 players per side. All players are now actively involved in the match, creating a massive 16-vs-16 gameplay experience.
 
 ## Minor Changes:
 - **Enhanced File Parser** — The loading system for players.txt is now much more robust. It automatically cleans up unnecessary spaces and empty lines.

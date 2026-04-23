@@ -9,7 +9,9 @@ int Player::validateStat(int value) {
     return value;
 }
 
-Player::Player(string n, string pos, int shot, int pass, int drib, int def, int phys, int stam) {
+Player::Player(PlayerStatus s, string n, PlayerPosition pos, int shot, int pass, int drib, int def, int phys, int mor, int stam) {
+    status = s;
+    baseStatus = s;
     name = n;
     position = pos;
     shooting = validateStat(shot);
@@ -18,25 +20,47 @@ Player::Player(string n, string pos, int shot, int pass, int drib, int def, int 
     defending = validateStat(def);
     physics = validateStat(phys);
     stamina = stam;
-    isInjured = false;
+	baseStamina = stam;
+    morale = mor;
+}
+
+string Player::getPlayerPosition() {
+    switch (position) {
+    case PlayerPosition::FWD: return "НАП";
+    case PlayerPosition::MID: return "ПЗЩ";
+    case PlayerPosition::DEF: return "ЗАЩ";
+    case PlayerPosition::GK: return "ВРТ";
+    default:                 return "---";
+    }
 }
 
 int Player::getOVR() {
-    if (position == "FWD") return (shooting * 0.7) + (dribbling * 0.3);
-    else if (position == "DEF") return (defending * 0.8) + (passing * 0.2);
-    else if (position == "MID") return (passing * 0.5) + (shooting * 0.2) + (dribbling * 0.3);
+    if (position == PlayerPosition::FWD) return (shooting * 0.7) + (dribbling * 0.3);
+    else if (position == PlayerPosition::MID) return (passing * 0.5) + (shooting * 0.2) + (dribbling * 0.3);
+    else if (position == PlayerPosition::DEF) return (defending * 0.8) + (passing * 0.2);
     return (shooting + passing + dribbling + defending) / 4;
 }
 
+
+void Player::setStatus(PlayerStatus newStatus) {
+    status = newStatus;
+}
+
+void Player::resetAfterMatch() {
+    stamina = baseStamina;
+    status = baseStatus; 
+}
+
+PlayerStatus Player::getStatus() { return status; }
 string Player::getName() { return name; }
-string Player::getPosition() { return position; }
+PlayerPosition Player::getPosition() { return position; }
 int Player::getShooting() { return shooting; }
 int Player::getPassing() { return passing; }
 int Player::getDribbling() { return dribbling; }
 int Player::getDefending() { return defending; }
 int Player::getPhysics() { return physics; }
 int Player::getStamina() { return stamina; }
-bool Player::getIsInjured() { return isInjured; }
+int Player::getMorale() { return morale; }
 
 void Player::setStamina(int value) {
     if (value > 100) stamina = 100;
@@ -44,7 +68,11 @@ void Player::setStamina(int value) {
     else stamina = value;
 }
 
-void Player::setInjured(bool status) { isInjured = status; }
+void Player::setMorale(int value) {
+    if (value > 100) morale = 100;
+    else if (value < 0) morale = 0;
+    else morale = value;
+}
 
 string Player::getColoredStamina() {
     int s = getStamina();
@@ -56,26 +84,47 @@ string Player::getColoredStamina() {
     return sColor + to_string(s) + "%" + RESET;
 }
 
-void Player::printStats() {
-    cout << "[" << position << "] " << name << " [OVR: " << getOVR() << "] "
-        << " | Удар: " << shooting << " | Пас: " << passing
-        << " | Дриблинг: " << dribbling << " | Защита: " << defending
-        << " | Физика: " << physics << " | Выносливость: " << getColoredStamina() << "\n";
+string Player::getColoredMorale() {
+    int s = getMorale();
+    string sColor = RESET;
+    if (morale >= 70) sColor = GREEN;
+    else if (morale >= 40) sColor = YELLOW;
+    else if (morale >= 20) sColor = ORANGE;
+    else sColor = RED;
+    return sColor + to_string(s) + "%" + RESET;
 }
 
-Goalkeeper::Goalkeeper(string n, string pos, int shot, int pass, int drib, int def, int phys, int refl, int jump, int stam)
-    : Player(n, "GK", shot, pass, drib, def, phys, stam) {
-    if (refl > 99) reflexes = 99; else if (refl < 1) reflexes = 1; else reflexes = refl;
-    if (jump > 99) jumping = 99; else if (jump < 1) jumping = 1; else jumping = jump;
+string Player::getStatusString() {
+    switch (status) {
+        case PlayerStatus::Starter:    return "[ОСН]";
+        case PlayerStatus::Substitute: return "[ЗАП]";
+		case PlayerStatus::Reserve:    return "[РЕЗ]";
+        case PlayerStatus::Injured:    return "[ТРАВМА]";
+		case PlayerStatus::Suspended:  return "[ДИСКВАЛ]";
+        default:                       return "[---]";
+    }
+}
+
+void Player::printStats(int index) {
+    cout << (index > 0 ? to_string(index) + "." : "") << "[" << getPlayerPosition() << "] " << name << " [OVR: " << getOVR() << "] "
+        << " | Удар: " << shooting << " | Пас: " << passing
+        << " | Дриблинг: " << dribbling << " | Защита: " << defending
+        << " | Физика: " << physics << " | Мораль: " << getColoredMorale() << " | Выносливость: " << getColoredStamina() << " | Статус: " << getStatusString() << "\n";
+}
+
+Goalkeeper::Goalkeeper(PlayerStatus s, string n, PlayerPosition pos, int shot, int pass, int drib, int def, int phys, int refl, int jump, int mor, int stam)
+    : Player(s, n, PlayerPosition::GK, shot, pass, drib, def, phys, mor, stam) {
+    reflexes = validateStat(refl);
+    jumping = validateStat(jump);
 }
 
 int Goalkeeper::getOVR() { return (reflexes * 0.4) + (jumping * 0.5) + (getPassing() * 0.1); }
 int Goalkeeper::getReflexes() { return reflexes; }
 int Goalkeeper::getJumping() { return jumping; }
 
-void Goalkeeper::printStats() {
-    cout << "[GK] " << getName() << " [OVR: " << getOVR() << "] "
+void Goalkeeper::printStats(int index) {
+    cout << (index > 0 ? to_string(index) + "." : "") << "." << "[ВРТ] " << getName() << " [OVR: " << getOVR() << "] "
         << " | Рефлексы: " << reflexes << " | Пас: " << passing
         << " | Прыжки: " << jumping << " | Физика: " << physics
-        << " | Выносливость: " << getColoredStamina() << "\n";
+        << " | Мораль: " << getColoredMorale() << " | Выносливость: " << getColoredStamina() << " | Статус: " << getStatusString() << "\n";
 }

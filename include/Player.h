@@ -5,37 +5,72 @@
 
 using namespace std;
 
+// Функция (Статус игроков)
+enum class PlayerStatus {
+    Starter = 0,    // Основа
+    Substitute = 1, // Запас
+    Reserve = 2,    // Резерв
+    Injured = 3,    // Травма
+    Suspended = 4   // Дисквалификация
+};
+
+// Функция (Позиция игрока)
+enum class PlayerPosition {
+    FWD = 1, // Нападающий (НАП)
+    MID = 2, // Полузащитник (ПЗЩ)
+    DEF = 3, // Защитник (ЗАЩ)
+    GK = 0   // Вратарь (ВРТ)
+};
+
 // Класс (Игрок)
 class Player {
 protected:
-    string name, position;
-    int shooting, passing, dribbling, defending, physics, stamina;
-    bool isInjured;
+    PlayerStatus status;     // Статус
+	PlayerStatus baseStatus; // Изначальный статус
+    PlayerPosition position; // Позиция
+    string name;             // Имя
+    int shooting;            // Удар 
+    int passing;             // Пасс
+    int dribbling;           // Дриблинг
+    int defending;           // Защита
+    int physics;             // Физика
+    int stamina;             // Выносливость
+    int baseStamina;         // Изначальная выносливость
+    int morale = 50;         // Мораль
 
     int validateStat(int value); // Валидация (Статистика)
 
 public:
     // Конструктор (Игрок)
-    Player(string n, string pos, int shot, int pass, int drib, int def, int phys, int stam = 100);
+    Player(PlayerStatus s, string n, PlayerPosition pos, int shot, int pass, int drib, int def, int phys, int mor, int stam = 100);
     virtual ~Player() = default;
 
     virtual int getOVR(); // Метод (Общий рейтинг "OVR")
 
-    // Геттеры (Характеристики)
-    string getName();
-    string getPosition();
-    int getShooting();
-    int getPassing();
-    int getDribbling();
-    int getDefending();
-    int getPhysics();
-    int getStamina();
-    bool getIsInjured();
+    // Геттеры
+    PlayerStatus getStatus();     // Статус
+    PlayerPosition getPosition(); // Позиция
+    string getName();             // Имя
+    int getShooting();            // Удар
+    int getPassing();             // Пасс
+    int getDribbling();           // Дриблинг
+    int getDefending();           // Защита
+    int getPhysics();             // Физика
+    int getStamina();             // Стамина
+    int getMorale();              // Мораль
 
-    void setStamina(int value); // Валидация (Стамина)
-    void setInjured(bool status); // Метод (Травма)
-    string getColoredStamina(); // Метод (Цветная стамина)
-    virtual void printStats(); // Метод (Карточка игрока)
+    // Сеттеры
+    void setStamina(int value); // Стамина
+    void setMorale(int mor);    // Мораль
+
+    // Функции 
+    string getPlayerPosition();             // Поиск по позиции
+    string getColoredStamina();             // Цветная стамина
+    string getColoredMorale();              // Цветная мораль
+	string getStatusString();               // Статус игрока
+    virtual void printStats(int index);     // Карточка игрока
+    void setStatus(PlayerStatus newStatus); // Статус игрока
+	void resetAfterMatch();                 // Сброс после матча
 };
 
 // Класс (Вратарь)
@@ -46,13 +81,13 @@ private:
 
 public:
     // Конструктор (Вратарь)
-    Goalkeeper(string n, string pos, int shot, int pass, int drib, int def, int phys, int refl, int jump, int stam = 100);
+    Goalkeeper(PlayerStatus s, string n, PlayerPosition pos, int shot, int pass, int drib, int def, int phys, int refl, int jump, int mor, int stam = 100);
     
     int getOVR() override; // Метод (Общий рейтинг вратаря "OVR)
     
-    // Геттеры (Рефлексы и прыжки)
-    int getReflexes(); 
-    int getJumping();
+    // Геттеры
+    int getReflexes(); // Рефлексы
+    int getJumping();  // Прыжки
 
-    void printStats() override; // Метод (Вывод статистик)
+    void printStats(int index) override; // Метод (Вывод статистик)
 };
