@@ -1,5 +1,24 @@
 # Goalogic Changelog
+---
+# Release v0.0.9 — The "Soul & Mind" Update
 
+## Global Changes:
+- **Standardized Squad Logic** — Retired the temporary 16-vs-16 "massive roster" format. The match engine has been recalibrated to a fixed, stabilized lineup system, prioritizing tactical precision over chaotic numbers.
+
+- **Psychological Engine** — Players are no longer robots. A new *Morale* colorful system has been integrated. It acts as a dynamic multiplier in the success formula. A player on a "hot streak" gets a massive boost, while a tilted one will struggle.
+
+- **"The Locker Room" Effect** — Added a strategic Half-time phase. The coach now intervenes based on the score:
+    - *Winning:* Praise boosts morale.
+    - *Losing:* A "hairdryer treatment" can either wake the team up or crush their spirits.
+    - *Draw:* A motivational speech provides a steady focus bonus.
+
+- **Dynamic Match Pacing** — Fixed match duration is gone. Games now last between *3 to 10* key episodes, making the final whistle unpredictable and every moment crucial.
+
+## Minor Changes:
+- **Mandatory Injury Management** — The game loop now actively blocks progress if an injured player is on the field. You are forced to use your tactical brain and make a sub or play with a man down.
+
+- **Visual Polish & UX** — Refined interface elements and expanded the "loading effect" system to create smoother, more atmospheric transitions between match phases and locker room events.
+---
 # Release v0.0.8 — The "Master Architect" Update
 ## Global Changes:
 - **Structural Revolution** — The entire game engine has been completely rewritten using a modular multi-file architecture. All logic for Players, Teams, and Match mechanics is now separated into dedicated modules.
