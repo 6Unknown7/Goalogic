@@ -34,7 +34,7 @@ Match::Match(Team* h, Team* a) {
 Player& Match::getRandomOutfieldPlayer(Team* team) {
     vector<Player*> outfield;
     for (auto p : team->roster) {
-        if (p->getPlayerPosition() != "GK" && p->getStatus() == PlayerStatus::Starter) outfield.push_back(p);
+        if (p->getPlayerPosition() != "ВРТ" && p->getStatus() == PlayerStatus::Starter) outfield.push_back(p);
     }
     if (outfield.empty()) return *(team->roster[0]);
     return *outfield[rand() % outfield.size()];
@@ -288,7 +288,7 @@ void Match::startQuickMatch() {
             
         // Цикл (Перерыв)
         if (i == totalEpisodes / 2) {
-            cout << "\n--- Перерыв: Команды уходят в подтрибунку ---" << endl;
+            cout << "\n--- Перерыв: Команды уходят в подтрибунку ---";
             pause();
 
             loadingEffect("Тренер разбирает командную игру");
